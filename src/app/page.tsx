@@ -10,7 +10,7 @@ import { ShoppingCart, Star, Plus } from "lucide-react";
 import CartDrawer from './public/shoppingCart/components/cart-drawer';
 import { Input } from "@/app/shared/components/input";
 import { Dialog, DialogContent, DialogTitle, DialogFooter, DialogDescription } from "@/app/shared/components/dialog";
-import { useSession, signIn } from "next-auth/react"; // Importar useSession y signIn
+import { useSession, signIn } from "next-auth/react";
 import { Skeleton } from './shared/components/skeleton';
 
 interface Product {
@@ -28,7 +28,7 @@ interface Product {
 }
 
 export default function Home() {
-  const { data: session, status } = useSession(); // Obtener la sesión
+  const { data: session, status } = useSession();
   const [products, setProducts] = useState<Product[]>([]);
   const [discountProducts, setDiscountProducts] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -38,10 +38,48 @@ export default function Home() {
   const [quantity_ordered, setQuantityOrdered] = useState(1);
   const carouselRef = useRef<HTMLDivElement>(null);
   const discountCarouselRef = useRef<HTMLDivElement>(null);
-  
-  // Estado para el diálogo de alerta
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const promotionalRef = useRef<HTMLDivElement>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const promotionalImages = [
+    '/imgprom/DALLA1.webp',
+    '/imgprom/DALLA2.webp',
+    '/imgprom/DALLA3.webp',
+    '/imgprom/DALLA4.webp',
+    '/imgprom/DALLA5.webp',
+  ];
+
+    // Auto-scroll functionality for promotional carousel
+    useEffect(() => {
+      const interval = setInterval(() => {
+        if (promotionalRef.current) {
+          const nextIndex = (currentImageIndex + 1) % promotionalImages.length;
+          setCurrentImageIndex(nextIndex);
+          const scrollAmount = nextIndex * promotionalRef.current.offsetWidth;
+          promotionalRef.current.scrollTo({
+            left: scrollAmount,
+            behavior: 'smooth'
+          });
+        }
+      }, 5000); // Change image every 5 seconds
+  
+      return () => clearInterval(interval);
+    }, [currentImageIndex, promotionalImages.length]);
+
+    // Pause auto-scroll on hover
+    const handleMouseEnter = () => {
+      if (promotionalRef.current) {
+        promotionalRef.current.style.scrollBehavior = 'auto';
+      }
+    };
+  
+    const handleMouseLeave = () => {
+      if (promotionalRef.current) {
+        promotionalRef.current.style.scrollBehavior = 'smooth';
+      }
+    };
 
   const fetchProducts = async () => {
     try {
@@ -79,7 +117,7 @@ export default function Home() {
         body: JSON.stringify({ 
           productId: product.product_non_perishable_id || product.product_perishable_id,  
           quantity_ordered: quantity_ordered,
-          email: session.user?.email, // Asegúrate de que el ID del cliente esté en la sesión
+          email: session.user?.email,
           type: product.product_non_perishable_id ? 'non-perishable' : 'perishable'
         }),
       });
@@ -92,6 +130,9 @@ export default function Home() {
       setAlertMessage("Producto añadido al carrito con éxito.");
       setIsAlertDialogOpen(true);
     } catch (error) {
+      console.error("Error adding product to cart:", error);
+      setAlertMessage("Error al añadir el producto al carrito. Por favor, inténtalo de nuevo.");
+      setIsAlertDialogOpen(true);
     }
   };
 
@@ -102,13 +143,33 @@ export default function Home() {
 
   const scrollLeft = (ref: React.RefObject<HTMLDivElement>) => {
     if (ref.current) {
-      ref.current.scrollBy({ left: -300, behavior: 'smooth' });
+      if (ref === promotionalRef) {
+        const prevIndex = (currentImageIndex - 1 + promotionalImages.length) % promotionalImages.length;
+        setCurrentImageIndex(prevIndex);
+        const scrollAmount = prevIndex * ref.current.offsetWidth;
+        ref.current.scrollTo({
+          left: scrollAmount,
+          behavior: 'smooth'
+        });
+      } else {
+        ref.current.scrollBy({ left: -300, behavior: 'smooth' });
+      }
     }
   };
 
   const scrollRight = (ref: React.RefObject<HTMLDivElement>) => {
     if (ref.current) {
-      ref.current.scrollBy({ left: 300, behavior: 'smooth' });
+      if (ref === promotionalRef) {
+        const nextIndex = (currentImageIndex + 1) % promotionalImages.length;
+        setCurrentImageIndex(nextIndex);
+        const scrollAmount = nextIndex * ref.current.offsetWidth;
+        ref.current.scrollTo({
+          left: scrollAmount,
+          behavior: 'smooth'
+        });
+      } else {
+        ref.current.scrollBy({ left: 300, behavior: 'smooth' });
+      }
     }
   };
 
@@ -200,6 +261,68 @@ export default function Home() {
 
   return (
     <div className="bg-gray-100 py-10">
+      {/* Promotional Section */}
+      <div className="relative mb-12">
+        <h1 className="text-3xl font-bold text-center text-[#000080] mb-6">Promociones Especiales</h1>
+        <div className="relative">
+          <button
+            className="hidden sm:flex absolute left-32 top-1/2 transform -translate-y-1/2 bg-[#00BFFF] text-white px-4 py-5 rounded-lg z-10 shadow-lg items-center justify-center text-[30px] hover:bg-[#0099CC] transition duration-300"
+            onClick={() => scrollLeft(promotionalRef)}
+          >
+            &#8249;
+          </button>
+          <div
+            ref={promotionalRef}
+            className="container mx-auto overflow-hidden"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            <div className="flex transition-transform duration-500 ease-in-out">
+              {promotionalImages.map((image, index) => (
+                <div key={index} className="flex-none w-full">
+                  <div className="relative h-[400px] mx-auto max-w-[900px]">
+                    <Image
+                      src={image}
+                      alt={`Promotional image ${index + 1}`}
+                      fill
+                      className="object-cover rounded-lg"
+                      priority={index === 0}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button
+            className="hidden sm:flex absolute right-32 top-1/2 transform -translate-y-1/2 bg-[#00BFFF] text-white px-4 py-5 rounded-lg z-10 shadow-lg items-center justify-center text-[30px] hover:bg-[#0099CC] transition duration-300"
+            onClick={() => scrollRight(promotionalRef)}
+          >
+            &#8250;
+          </button>
+          {/* Carousel Indicators */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {promotionalImages.map((_, index) => (
+              <button
+                key={index}
+                className={`w-3 h-3 rounded-full transition-colors duration-300 ${
+                  index === currentImageIndex ? 'bg-[#00BFFF]' : 'bg-gray-300'
+                }`}
+                onClick={() => {
+                  setCurrentImageIndex(index);
+                  if (promotionalRef.current) {
+                    const scrollAmount = index * promotionalRef.current.offsetWidth;
+                    promotionalRef.current.scrollTo({
+                      left: scrollAmount,
+                      behavior: 'smooth'
+                    });
+                  }
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
       <h1 className="text-3xl font-bold text-center text-[#000080] mb-6">Productos que te pueden interesar</h1>
 
       <div className="relative">
@@ -264,6 +387,7 @@ export default function Home() {
         <button
           className="hidden sm:flex absolute right-32 top-1/2 transform -translate-y-1/2 bg-[#00BFFF] text-white px-4 py-5 rounded-lg z-10 shadow-lg items-center justify-center text-[30px] hover:bg-[#0099CC] transition duration-300"
           onClick={() => scrollRight(discountCarouselRef)}
+        
         >
           &#8250;
         </button>
@@ -271,7 +395,6 @@ export default function Home() {
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
-      {/* Diálogo para seleccionar cantidad */}
       <Dialog open={isQuantityDialogOpen} onOpenChange={setIsQuantityDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogTitle>Añadir al carrito</DialogTitle>
@@ -349,7 +472,7 @@ export default function Home() {
               <Button
                 onClick={() => {
                   setIsAlertDialogOpen(false);
-                  signIn(); // Iniciar el flujo de inicio de sesión
+                  signIn();
                 }}
                 className="ml-2 bg-[#00BFFF] text-white hover:bg-[#0099CC]"
               >
