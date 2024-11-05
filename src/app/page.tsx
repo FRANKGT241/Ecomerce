@@ -339,7 +339,7 @@ export default function Home() {
       </Dialog>
       <Dialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
-          <DialogTitle>¡Inicie sesion antes de agregar un articulo a su carrito!</DialogTitle>
+          <DialogTitle>Producto</DialogTitle>
           <DialogDescription>
             {alertMessage}
           </DialogDescription>
