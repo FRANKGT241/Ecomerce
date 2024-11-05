@@ -141,10 +141,14 @@ export default function Footer() {
             La venta de los productos online está sujeta a verificación de stock. Los precios y cuotas bancarias en COSTADENT así como la información del sitio, están sujetos a cambios sin previo aviso.
             </p>
             <div className="flex justify-center gap-4">
-              <Link href="/terminos" className="text-blue-600 hover:underline">Términos y condiciones</Link>
-              <Link href="/privacidad" className="text-blue-600 hover:underline">Política de privacidad</Link>
-              <Link href="/cookies" className="text-blue-600 hover:underline">Política de cookies</Link>
+              <Link href="/public/politica-empresa?page=terminos-condiciones" className="text-blue-600 hover:underline">
+                Términos y condiciones
+              </Link>
+              <Link href="/public/politica-empresa?page=politicas-privacidad" className="text-blue-600 hover:underline">
+                Política de privacidad
+              </Link>
             </div>
+
             <p className="text-gray-600">Copyright © 1989-2024 COSTADENT S.A. (By Francisco Manuel & Mendelssohn Torres) Todos los derechos reservados.</p>
             <p className="text-gray-500">Versión 1.0.2</p>
           </div>
