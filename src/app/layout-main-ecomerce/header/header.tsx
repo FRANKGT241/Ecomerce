@@ -247,6 +247,11 @@ export default function Header() {
               </Link>
             </li>
             <li>
+              <Link href="/public/seguimiento-pedido" className="text-white hover:text-[#00BFFF]">
+                Seguimiento de pedido
+              </Link>
+            </li>
+            <li>
               <Link href="/public/soporte-contacto" className="text-white hover:text-[#00BFFF]">
                 Soporte al cliente
               </Link>
