@@ -21,7 +21,6 @@ type Product = string;
 
 export default function Header() {
   const { data: session, status } = useSession();
-  console.log("Session:", session);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,10 +39,8 @@ export default function Header() {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      console.log("Data received from API:", data);
       setSearchResults(data);
     } catch (error) {
-      console.error('Error fetching search results:', error);
     }
   }, [searchQuery]); 
 
@@ -79,7 +76,6 @@ export default function Header() {
 
   const sesionClient = useCallback(async () => {
     if (!session) {
-      console.error('Usuario no autenticado');
       return;
     }
 
@@ -101,9 +97,7 @@ export default function Header() {
       }
 
       const data = await response.json();
-      console.log('Respuesta del servidor:', data);
     } catch (error) {
-      console.error('Error al enviar datos de la sesión', error);
     }
   }, [session]);
 
@@ -237,9 +231,9 @@ export default function Header() {
         <div className="container mx-auto px-4 py-2">
           <ul className="flex justify-between items-center">
             <li>
-              <Button variant="ghost" className="text-white hover:text-[#00BFFF]">
+            <a href="/" className="text-white hover:text-[#00BFFF]">
                 Inicio
-              </Button>
+            </a>
             </li>
             <li>
               <a href="/" className="text-white hover:text-[#00BFFF]" onClick={scrollToDiscountedProducts}>
@@ -278,6 +272,11 @@ export default function Header() {
               </div>
               <nav>
                 <ul className="space-y-2">
+                  <li>
+                  <Link href="/" className="block py-1 text-white hover:text-[#00BFFF]">
+                      Inicio
+                    </Link>
+                  </li>
                   <li>
                     <a href="#discounted-products" className="text-white hover:text-[#00BFFF]" onClick={scrollToDiscountedProducts}>
                       Ofertas del Día

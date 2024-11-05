@@ -10,6 +10,8 @@ import { ShoppingCart, Star, Plus } from "lucide-react";
 import CartDrawer from './public/shoppingCart/components/cart-drawer';
 import { Input } from "@/app/shared/components/input";
 import { Dialog, DialogContent, DialogTitle, DialogFooter, DialogDescription } from "@/app/shared/components/dialog";
+import { useSession, signIn } from "next-auth/react"; // Importar useSession y signIn
+import { Skeleton } from './shared/components/skeleton';
 
 interface Product {
   product_perishable_id?: number;
@@ -26,6 +28,7 @@ interface Product {
 }
 
 export default function Home() {
+  const { data: session, status } = useSession(); // Obtener la sesión
   const [products, setProducts] = useState<Product[]>([]);
   const [discountProducts, setDiscountProducts] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -35,6 +38,10 @@ export default function Home() {
   const [quantity_ordered, setQuantityOrdered] = useState(1);
   const carouselRef = useRef<HTMLDivElement>(null);
   const discountCarouselRef = useRef<HTMLDivElement>(null);
+  
+  // Estado para el diálogo de alerta
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const fetchProducts = async () => {
     try {
@@ -42,7 +49,7 @@ export default function Home() {
       const data = await response.json();
       setProducts(data);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     }
   };
 
@@ -52,11 +59,17 @@ export default function Home() {
       const data = await response.json();
       setDiscountProducts(data);
     } catch (error) {
-      console.error('Error fetching products with discount:', error);
+      console.error("Error fetching discounted products:", error);
     }
   };
 
   const addToCart = async (product: Product, quantity: number) => {
+    if (!session) {
+      setAlertMessage("Debes iniciar sesión para añadir productos al carrito.");
+      setIsAlertDialogOpen(true);
+      return;
+    }
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/item`, {
         method: 'POST',
@@ -66,18 +79,19 @@ export default function Home() {
         body: JSON.stringify({ 
           productId: product.product_non_perishable_id || product.product_perishable_id,  
           quantity_ordered: quantity_ordered,
-          id_client: 1,
+          email: session.user?.email, // Asegúrate de que el ID del cliente esté en la sesión
           type: product.product_non_perishable_id ? 'non-perishable' : 'perishable'
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Error adding product to cart');
+        throw new Error('Error al añadir el producto al carrito');
       }
 
       const data = await response.json();
+      setAlertMessage("Producto añadido al carrito con éxito.");
+      setIsAlertDialogOpen(true);
     } catch (error) {
-      console.error('Error adding product to cart:', error);
     }
   };
 
@@ -145,8 +159,13 @@ export default function Home() {
             className="bg-[#00BFFF] hover:bg-[#0099CC] text-white"
             onClick={(e) => {
               e.preventDefault();
-              setSelectedProduct(product);
-              setIsQuantityDialogOpen(true);
+              if (session) {
+                setSelectedProduct(product);
+                setIsQuantityDialogOpen(true);
+              } else {
+                setAlertMessage("Debes iniciar sesión para añadir productos al carrito.");
+                setIsAlertDialogOpen(true);
+              }
             }}
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
@@ -200,7 +219,16 @@ export default function Home() {
               {renderSeeMoreCard()}
             </>
           ) : (
-            <p className="text-center text-gray-600">Cargando productos...</p>
+            Array.from({ length: 4 }).map((_, index) => (
+              <Card key={index} className="overflow-hidden">
+                <Skeleton className="h-48 w-full" />
+                <CardContent className="p-4">
+                  <Skeleton className="h-4 w-2/3 mb-2" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardContent>
+              </Card>
+            ))
           )}
         </div>
         <button
@@ -230,7 +258,7 @@ export default function Home() {
               {renderSeeMoreCard()}
             </>
           ) : (
-            <p className="text-center text-gray-600">Cargando productos con descuento...</p>
+            <p className="text-center text-gray-600">Cargando productos...</p>
           )}
         </div>
         <button
@@ -241,6 +269,9 @@ export default function Home() {
         </button>
       </div>
 
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* Diálogo para seleccionar cantidad */}
       <Dialog open={isQuantityDialogOpen} onOpenChange={setIsQuantityDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogTitle>Añadir al carrito</DialogTitle>
@@ -255,7 +286,6 @@ export default function Home() {
                       height={120}
                       className="rounded-md object-cover"
                     />
-
                 ) : (
                   <div className="w-[120px] h-[120px] bg-gray-200 rounded-md flex items-center justify-center">
                     <span className="text-gray-400">No image</span>
@@ -304,6 +334,28 @@ export default function Home() {
             }}>
               Añadir al carrito
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogTitle>¡Inicie sesion antes de agregar un articulo a su carrito!</DialogTitle>
+          <DialogDescription>
+            {alertMessage}
+          </DialogDescription>
+          <DialogFooter>
+            <Button onClick={() => setIsAlertDialogOpen(false)}>Cerrar</Button>
+            {!session && (
+              <Button
+                onClick={() => {
+                  setIsAlertDialogOpen(false);
+                  signIn(); // Iniciar el flujo de inicio de sesión
+                }}
+                className="ml-2 bg-[#00BFFF] text-white hover:bg-[#0099CC]"
+              >
+                Iniciar sesión
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
