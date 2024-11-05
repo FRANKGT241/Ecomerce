@@ -12,6 +12,7 @@ import { ProductFilters } from '@/app/shared/components/product-filters';
 import { Dialog, DialogContent, DialogTitle, DialogFooter, DialogDescription } from "@/app/shared/components/dialog";
 import { Input } from "@/app/shared/components/input";
 import { useSession, signIn } from "next-auth/react"; // Importar useSession y signIn
+import Product from '@/app/e-commerce/admin/pages/product/create-product/page';
 
 interface Product {
   product_perishable_id?: number;
@@ -23,7 +24,7 @@ interface Product {
   brand: string;
   stock?: number;
   images: string[];
-  Category: { name: string };
+  category:  string ;
   Batch?: { quantity: number };
 }
 
@@ -122,7 +123,16 @@ export default function ProductListClient({ initialProducts }: ProductListClient
   }, [fetchProducts]);
 
   useEffect(() => {
-    const uniqueCategories = Array.from(new Set(products.map((product: Product) => product.Category.name)));
+    console.log('Productos:', products);
+    const uniqueCategories = Array.from(
+      new Set(
+        products.map((product: Product) => {
+          console.log('Producto:', product.category); // Imprime cada producto
+          return product.category;
+        })
+      )
+    );
+    
     setCategories(uniqueCategories);
     const uniqueBrands = Array.from(new Set(products.map((product: Product) => product.brand)));
     setBrands(uniqueBrands);
@@ -130,7 +140,7 @@ export default function ProductListClient({ initialProducts }: ProductListClient
 
   useEffect(() => {
     const filtered = products.filter((product) => {
-      const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(product.Category.name);
+      const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(product.category);
       const brandMatch = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
       const priceMatch = product.price !== null && product.price >= priceRange[0] && product.price <= priceRange[1];
       const stockMatch = !showInStock || (product.Batch?.quantity || product.stock || 0) > 0;
