@@ -80,6 +80,7 @@ export default function Header() {
     }
 
     try {
+      console.log(session.user);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sesion/client`, {
         method: 'POST',
         headers: {

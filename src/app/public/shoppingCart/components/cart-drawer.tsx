@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -73,16 +73,14 @@ export default function CartDrawer({ isOpen, onClose, product }: CartDrawerProps
 
       {/* Drawer */}
       <div className={`
-        fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50
+        fixed top-0 right-0 h-full w-[400px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        flex flex-col
-        overflow-y-auto
       `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
+        <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-xl font-semibold">Tu carrito</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-            <X className="w-5 h-5 text-black" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -108,7 +106,7 @@ export default function CartDrawer({ isOpen, onClose, product }: CartDrawerProps
 
               return (
                 <div key={item.cart_detail_id} className="flex gap-4 mb-4 border-b pb-4">
-                  <div className="relative w-20 h-20 flex-shrink-0">
+                  <div className="relative w-20 h-20">
                     <Image
                       src={product.images[0] || '/placeholder.svg'}
                       alt={product.name}
@@ -116,9 +114,9 @@ export default function CartDrawer({ isOpen, onClose, product }: CartDrawerProps
                       className="object-cover rounded"
                     />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm truncate">{product.name}</h3>
-                    <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-sm">{product.name}</h3>
+                    <div className="flex items-center  justify-between mt-2">
                       <div className="flex items-center gap-2">
                         <button className="p-1 hover:bg-gray-100 rounded">
                           <Minus className="w-4 h-4" />
@@ -138,7 +136,7 @@ export default function CartDrawer({ isOpen, onClose, product }: CartDrawerProps
         </div>
 
         {/* Footer */}
-        <div className="border-t p-4 flex-shrink-0">
+        <div className="border-t p-4">
           <div className="flex justify-between mb-4">
             <span className="font-medium">SUBTOTAL</span>
             <span className="font-medium">Q{calculateSubtotal().toFixed(2)}</span>
@@ -146,16 +144,19 @@ export default function CartDrawer({ isOpen, onClose, product }: CartDrawerProps
           <div className="space-y-2">
             <Link 
               href="/public/shoppingCart"
-              className="block w-full py-2 px-4 bg-white border-2 border-[#00BFFF] text-[#00BFFF] rounded text-center font-medium hover:bg-gray-50 transition-colors"
+              className="block w-full py-2 px-4 bg-white border-2 border-[#00BFFF] text-[#00BFFF] rounded text-center font-medium hover:bg-gray-50"
             >
               Ver carrito
             </Link>
             <PayPalButton
-              amount={calculateSubtotal().toFixed(2)}
-              currency="USD"
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentError}
-            />
+          amount="1"
+          currency="USD"
+          onSuccess={handlePaymentSuccess}
+          onError={handlePaymentError}
+        />
+            <button className="w-full py-2 px-4 bg-[#00BFFF] text-white rounded font-medium hover:bg-[#0099CC]">
+              Pagar pedido
+            </button>
           </div>
         </div>
       </div>
